@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Redirecting...</title>
+  <script>
+    window.onload = function () {
+      const jsonUrl = "https://raw.githubusercontent.com/N-blog/apis/refs/heads/main/redirect-web/main.json";
+
+      fetch(jsonUrl)
+        .then(response => response.json())
+        .then(data => {
+          // 必須項目チェック
+          if (!data.ID || !data.Url) {
+             aleart("エラーが発生しました")
+            console.error("IDとUrlは必須です");
+            return;
+          }
+
+          // リダイレクト先のURLを構築
+          let redirectUrl = data.Url;
+
+          if (redirectUrl.endsWith("/")) {
+            redirectUrl = redirectUrl.slice(0, -1);
+          }
+
+          if (data.ID.startsWith("#")) {
+            redirectUrl += "/" + data.ID;
+          } else if (data.ID.startsWith("?")) {
+            redirectUrl += "/" + data.ID;
+          } else if (data.ID.startsWith("type=")) {
+            redirectUrl += "/?" + data.ID;
+          } else {
+            redirectUrl += "/#" + data.ID;
+          }
+
+          // 1秒後にリダイレクト
+          setTimeout(() => {
+            window.location.href = redirectUrl;
+          }, 1000);
+        })
+        .catch(error => {
+          console.error("JSONの取得に失敗しました:", error);
+          aleart("エラーが発生しました")
+        });
+    };
+  </script>
+</head>
+<body>
+  <p>リダイレクト中です。少々お待ちください…</p>
+</body>
+</html>
