@@ -16,12 +16,8 @@
 
           const data = JSON.parse(text);
 
-          // IDを優先、ID2は使わない（またはURLパラメータで切り替え）
-          const urlParams = new URLSearchParams(window.location.search);
-          const useID2 = urlParams.get("useID2") === "true";
-          const id = useID2 ? data.ID2 : data.ID;
-
-          if (!id || !data.Url) {
+          // IDとUrlのチェック（ID2は使わない！）
+          if (!data.ID || !data.Url) {
             console.error("IDとUrlは必須です");
             return;
           }
@@ -32,6 +28,8 @@
           if (redirectUrl.endsWith("/")) {
             redirectUrl = redirectUrl.slice(0, -1);
           }
+
+          const id = data.ID;
 
           if (id.startsWith("#")) {
             redirectUrl += "/" + id;
