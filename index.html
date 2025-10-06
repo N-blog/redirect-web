@@ -5,37 +5,50 @@
   <title>Redirecting...</title>
   <script>
     window.onload = function () {
-      const jsonUrl = "https://raw.githubusercontent.com/N-blog/apis/refs/heads/main/redirect-web/main.json";
+      const jsonUrl = "https://n-blog.github.io/redirect-web/main.json";
 
-      fetch(jsonUrl)
+      // クエリ or ハッシュからIDを取得
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryID = urlParams.get("id");
+      const hashID = window.location.hash.replace(/^#/, "");
+      const targetID = queryID || hashID;
+
+      if (!targetID) {
+        document.body.innerHTML = "<p style='color:red;'>URLに ?id=xxx または #xxx を指定してください。</p>";
+        return;
+      }
+
+      fetch(jsonUrl + "?v=" + Date.now()) // キャッシュ回避
         .then(response => response.text())
         .then(text => {
           if (!text.trim()) {
             throw new Error("JSONが空です！");
           }
 
-          const data = JSON.parse(text);
+          const entries = JSON.parse(text);
 
-          // IDとUrlのチェック（IDは # で始まるものだけ許可）
-          if (!data.ID || !data.Url || !/^#\w+/.test(data.ID)) {
-            console.error("IDが不正です。形式は #xxxx のみ許可されます。");
-            document.body.innerHTML = "<p style='color:red;'>リダイレクトエラー：IDが不正です。</p>";
+          if (!Array.isArray(entries)) {
+            throw new Error("JSONは配列形式である必要があります。");
+          }
+
+          const entry = entries.find(item => item.ID === targetID);
+
+          if (!entry || !entry.Url) {
+            document.body.innerHTML = `<p style='color:red;'>指定されたID「${targetID}」が見つかりません。</p>`;
             return;
           }
 
-          // リダイレクト先のURLを構築
-          let redirectUrl = data.Url.replace(/\/+$/, ""); // 末尾のスラッシュを削除
-          redirectUrl += "/" + data.ID; // 例: https://username.github.io/project/#aaaa
+          let redirectUrl = entry.Url.replace(/\/+$/, "");
+          redirectUrl += "/#" + entry.ID;
 
           console.log("リダイレクト先:", redirectUrl);
 
-          // 2秒後にリダイレクト
           setTimeout(() => {
             window.location.href = redirectUrl;
           }, 2000);
         })
         .catch(error => {
-          console.error("JSONの取得に失敗しました:", error.message);
+          console.error("エラー:", error.message);
           document.body.innerHTML = "<p style='color:red;'>JSONの取得に失敗しました。</p>";
         });
     };
