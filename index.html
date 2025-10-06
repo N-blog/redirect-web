@@ -6,26 +6,22 @@
   <script>
     window.onload = function () {
       const jsonUrl = "https://raw.githubusercontent.com/N-blog/apis/refs/heads/main/redirect-web/main.json";
-fetch(jsonUrl)
-  .then(response => response.text())
-  .then(text => {
-    console.log("取得したテキスト:", text);
-    if (!text.trim()) {
-      throw new Error("JSONが空です！");
-    }
-    const data = JSON.parse(text);
-    console.log("パース成功:", data);
-  })
-  .catch(error => {
-    console.error("エラー:", error.message);
-  });
 
       fetch(jsonUrl)
-        .then(response => response.json())
-        .then(data => {
-          // 必須項目チェック
-          if (!data.ID || !data.Url) {
-             aleart("エラーが発生しました")
+        .then(response => response.text())
+        .then(text => {
+          if (!text.trim()) {
+            throw new Error("JSONが空です！");
+          }
+
+          const data = JSON.parse(text);
+
+          // IDを優先、ID2は使わない（またはURLパラメータで切り替え）
+          const urlParams = new URLSearchParams(window.location.search);
+          const useID2 = urlParams.get("useID2") === "true";
+          const id = useID2 ? data.ID2 : data.ID;
+
+          if (!id || !data.Url) {
             console.error("IDとUrlは必須です");
             return;
           }
@@ -37,24 +33,25 @@ fetch(jsonUrl)
             redirectUrl = redirectUrl.slice(0, -1);
           }
 
-          if (data.ID.startsWith("#")) {
-            redirectUrl += "/" + data.ID;
-          } else if (data.ID.startsWith("?")) {
-            redirectUrl += "/" + data.ID;
-          } else if (data.ID.startsWith("type=")) {
-            redirectUrl += "/?" + data.ID;
+          if (id.startsWith("#")) {
+            redirectUrl += "/" + id;
+          } else if (id.startsWith("?")) {
+            redirectUrl += "/" + id;
+          } else if (id.startsWith("type=")) {
+            redirectUrl += "/?" + id;
           } else {
-            redirectUrl += "/#" + data.ID;
+            redirectUrl += "/#" + id;
           }
 
-          // 1秒後にリダイレクト
+          console.log("リダイレクト先:", redirectUrl);
+
+          // 2秒後にリダイレクト
           setTimeout(() => {
             window.location.href = redirectUrl;
-          }, 1000);
+          }, 2000);
         })
         .catch(error => {
-          console.error("JSONの取得に失敗しました:", error);
-
+          console.error("JSONの取得に失敗しました:", error.message);
         });
     };
   </script>
