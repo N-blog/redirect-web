@@ -16,30 +16,16 @@
 
           const data = JSON.parse(text);
 
-          // IDとUrlのチェック（ID2は使わない！）
-          if (!data.ID || !data.Url) {
-            console.error("IDとUrlは必須です");
+          // IDとUrlのチェック（IDは # で始まるものだけ許可）
+          if (!data.ID || !data.Url || !/^#\w+/.test(data.ID)) {
+            console.error("IDが不正です。形式は #xxxx のみ許可されます。");
+            document.body.innerHTML = "<p style='color:red;'>リダイレクトエラー：IDが不正です。</p>";
             return;
           }
 
           // リダイレクト先のURLを構築
-          let redirectUrl = data.Url;
-
-          if (redirectUrl.endsWith("/")) {
-            redirectUrl = redirectUrl.slice(0, -1);
-          }
-
-          const id = data.ID;
-
-          if (id.startsWith("#")) {
-            redirectUrl += "/" + id;
-          } else if (id.startsWith("?")) {
-            redirectUrl += "/" + id;
-          } else if (id.startsWith("type=")) {
-            redirectUrl += "/?" + id;
-          } else {
-            redirectUrl += "/#" + id;
-          }
+          let redirectUrl = data.Url.replace(/\/+$/, ""); // 末尾のスラッシュを削除
+          redirectUrl += "/" + data.ID; // 例: https://username.github.io/project/#aaaa
 
           console.log("リダイレクト先:", redirectUrl);
 
@@ -50,6 +36,7 @@
         })
         .catch(error => {
           console.error("JSONの取得に失敗しました:", error.message);
+          document.body.innerHTML = "<p style='color:red;'>JSONの取得に失敗しました。</p>";
         });
     };
   </script>
